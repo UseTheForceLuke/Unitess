@@ -2,6 +2,8 @@
 WORKDIR /src
 EXPOSE 8080
 EXPOSE 8081
+EXPOSE 5000
+EXPOSE 5001
 
 # Copy project files (paths are relative to root context)
 COPY ["src/IdentityServer/IdentityServer.csproj", "src/IdentityServer/"]
