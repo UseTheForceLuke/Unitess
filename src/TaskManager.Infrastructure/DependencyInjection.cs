@@ -16,9 +16,6 @@ public static class DependencyInjection
         services.AddScoped<IApplicationDbContext>(provider =>
             provider.GetRequiredService<ApplicationDbContext>());
 
-        services.AddScoped<IUnitOfWork>(provider =>
-            provider.GetRequiredService<ApplicationDbContext>());
-
         services.AddHostedService<IdentityServerEventConsumer>();
 
         return services;

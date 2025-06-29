@@ -7,12 +7,12 @@ namespace TaskManager.Domain;
 public class UserTask : Entity
 {
     public Guid UserId { get; set; }
-    public User User { get; set; }
     public Guid TaskId { get; set; }
-    public Task Task { get; set; }
     public bool IsCreator { get; set; }
 
-    protected UserTask() { } // For EF
+    // Navigation properties
+    public User User { get; set; }
+    public Task Task { get; set; }
 
     public UserTask(Guid userId, Guid taskId, bool isCreator = false)
     {

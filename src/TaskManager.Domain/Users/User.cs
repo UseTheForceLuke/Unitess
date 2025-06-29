@@ -8,6 +8,10 @@ public class User
     public string Username { get; set; }
     public string Email { get; set; }
     public UserRole Role { get; set; }
+
+    // One-to-Many: Tasks created by this user
     public ICollection<Task> CreatedTasks { get; set; } = new List<Task>();
-    public ICollection<UserTask> AssignedTasks { get; set; } = new List<UserTask>();
+
+    // Many-to-Many: Tasks assigned to this user
+    public ICollection<UserTask> UserTasks { get; set; } = new List<UserTask>();
 }

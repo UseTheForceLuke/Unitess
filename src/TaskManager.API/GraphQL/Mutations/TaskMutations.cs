@@ -12,7 +12,7 @@ namespace TaskManager.API.GraphQL.Mutations;
 [ExtendObjectType(OperationTypeNames.Mutation)]
 public class TaskMutations
 {
-    [Authorize(Policy = "User")]
+    //[Authorize(Policy = "User")]
     public async Task<TaskDto> CreateTask(
         CreateTaskInput input,
         [Service] IMediator mediator,
@@ -61,14 +61,14 @@ public class TaskMutations
     //    return true;
     //}
 
-    [Authorize(Policy = "Admin")]
-    public async Task<bool> AssignTaskToUser(
-        Guid taskId,
-        Guid userId,
-        [Service] IMediator mediator)
-    {
-        var command = new AssignTaskCommand(taskId, userId);
-        await mediator.Send(command);
-        return true;
-    }
+    //[Authorize(Policy = "Admin")]
+    //public async Task<bool> AssignTaskToUser(
+    //    Guid taskId,
+    //    Guid userId,
+    //    [Service] IMediator mediator)
+    //{
+    //    var command = new AssignTaskCommand(taskId, userId);
+    //    await mediator.Send(command);
+    //    return true;
+    //}
 }

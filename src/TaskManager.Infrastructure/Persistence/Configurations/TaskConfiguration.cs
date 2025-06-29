@@ -14,9 +14,15 @@ public class TaskConfiguration : IEntityTypeConfiguration<Task>
         builder.Property(t => t.Status).IsRequired();
         builder.Property(t => t.CreatedAt).IsRequired();
 
+        // One-to-Many: User creates many Tasks
         builder.HasOne(t => t.Creator)
             .WithMany(u => u.CreatedTasks)
             .HasForeignKey(t => t.CreatorId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        // Many-to-Many: Users assigned to Tasks
+        builder.HasMany(t => t.UserTasks)
+            .WithOne(ut => ut.Task)
+            .HasForeignKey(ut => ut.TaskId);
     }
 }

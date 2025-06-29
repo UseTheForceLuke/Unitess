@@ -1,13 +1,17 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Web;
 using TaskManager.Api.Middleware;
 using TaskManager.API;
+using TaskManager.API.GraphQL.Mutations;
+using TaskManager.API.GraphQL.Queries;
 using TaskManager.Application;
 using TaskManager.Application.Abstraction;
 using TaskManager.Application.Services;
 using TaskManager.Application.Tasks;
 using TaskManager.Infrastructure;
+using TaskManager.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -30,32 +34,47 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         options.RequireHttpsMetadata = false; // Only for development
     });
 
-builder.Services.AddControllers();
-builder.Services.AddOpenApi();
+builder.Services
+    .AddGraphQLServer()
+    .AddQueryType<TaskQueries>()
+    .AddMutationType<TaskMutations>()
+    .AddProjections()
+    .AddFiltering()
+    .AddSorting()
+    .AddErrorFilter(error =>
+    {
+        if (error.Exception is UnauthorizedAccessException)
+            return error.WithMessage("Unauthorized access");
+        return error;
+    });
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
 
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider
+        .GetRequiredService<ApplicationDbContext>();
+    dbContext.Database.Migrate(); // Applies pending migrations
+}
+
 app.UseHttpsRedirection();
 
-app.UseAuthentication();
-builder.Services.AddAuthorization(options =>
-{
-    options.AddPolicy("Admin", policy =>
-        policy.RequireAssertion(context =>
-            context.User.HasClaim(c =>
-                c.Type == "role" && c.Value == "Admin")));
+//app.UseAuthentication();
+//builder.Services.AddAuthorization(options =>
+//{
+//    options.AddPolicy("Admin", policy =>
+//        policy.RequireAssertion(context =>
+//            context.User.HasClaim(c =>
+//                c.Type == "role" && c.Value == "Admin")));
 
-    options.AddPolicy("User", policy =>
-        policy.RequireAuthenticatedUser());
-});
-app.UseMiddleware<CurrentUserMiddleware>();
-
-app.MapControllers();
+//    options.AddPolicy("User", policy =>
+//        policy.RequireAuthenticatedUser());
+//});
+//app.UseMiddleware<CurrentUserMiddleware>();
 
 app.Run();

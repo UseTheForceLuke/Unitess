@@ -7,7 +7,7 @@ using Task_ = System.Threading.Tasks.Task;
 
 namespace TaskManager.Infrastructure.Persistence;
 
-public class ApplicationDbContext : DbContext, IApplicationDbContext, IUnitOfWork
+public class ApplicationDbContext : DbContext, IApplicationDbContext
 {
     public DbSet<Task> Tasks { get; set; }
     public DbSet<User> Users { get; set; }

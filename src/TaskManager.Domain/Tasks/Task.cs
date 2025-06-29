@@ -11,6 +11,8 @@ public class Task : Entity
     public TaskStatus Status { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public Guid CreatorId { get; private set; }
+
+    // Navigation properties
     public User Creator { get; private set; }
     public ICollection<UserTask> UserTasks { get; private set; } = new List<UserTask>();
 
