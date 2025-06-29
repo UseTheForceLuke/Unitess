@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
+using TaskManager.Application.Users.Events;
 using TaskManager.SharedKernel.Events;
 
 namespace IdentityServer.Controllers;
@@ -36,8 +37,8 @@ public class AccountController : ControllerBase
         {
             await _userManager.AddToRoleAsync(user, model.Role);
 
-            await _mediator.Publish(new UserRegisteredEvent(
-                IdentityId: user.Id,
+            await _mediator.Publish(new UserCreatedEvent(
+                SubjectId: user.Id,
                 Username: user.UserName!,
                 Email: user.Email!,
                 Role: model.Role

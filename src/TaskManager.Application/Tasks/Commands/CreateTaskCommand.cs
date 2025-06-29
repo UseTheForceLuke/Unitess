@@ -6,8 +6,8 @@ namespace TaskManager.Application.Tasks;
 
 public record CreateTaskCommand(string Title, 
     string Description,
-    int CreatorId, 
-    IEnumerable<int> AssignedUserIds) : IRequest<TaskDto>;
+    Guid CreatorId, 
+    IEnumerable<Guid> AssignedUserIds) : IRequest<TaskDto>;
 
 public class TaskDto
 {
