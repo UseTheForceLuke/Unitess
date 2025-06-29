@@ -96,11 +96,11 @@ app.MapHealthChecks("health", new HealthCheckOptions
 // Add a default root endpoint
 app.MapGet("/", () => Results.Redirect("/swagger"));
 
-await SeedUsers(builder, app);
+await InitializeAsync(builder, app);
 
 app.Run();
 
-static async System.Threading.Tasks.Task SeedUsers(WebApplicationBuilder builder, WebApplication app)
+static async System.Threading.Tasks.Task InitializeAsync(WebApplicationBuilder builder, WebApplication app)
 {
     await DbInitializer.InitializeAsync(app.Services, builder.Configuration);
 
