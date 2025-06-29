@@ -1,4 +1,5 @@
-﻿using System.Security.Claims;
+﻿using Microsoft.AspNetCore.Http;
+using System.Security.Claims;
 using TaskManager.Application.Abstraction;
 using TaskManager.Domain.Users;
 
@@ -49,4 +50,15 @@ public class UserSyncService : IUserSyncService
 
         return user;
     }
+
+    public async Task<User> GetCurrentUser(IHttpContextAccessor httpContextAccessor)
+    {
+        var currentUser = httpContextAccessor.HttpContext?.Items["CurrentUser"] as User;
+
+        if (currentUser == null)
+            throw new UnauthorizedAccessException();
+
+        return currentUser;
+    }
+
 }

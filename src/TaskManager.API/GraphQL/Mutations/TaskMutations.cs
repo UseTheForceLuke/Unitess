@@ -2,6 +2,7 @@
 using HotChocolate.Types;
 using MediatR;
 using TaskManager.API.Mutations;
+using TaskManager.Application.Abstraction;
 using TaskManager.Application.Tasks;
 using TaskManager.Application.Tasks.Commands;
 using TaskManager.Application.Users.Commands;
@@ -16,11 +17,10 @@ public class TaskMutations
     public async Task<TaskDto> CreateTask(
         CreateTaskInput input,
         [Service] IMediator mediator,
+        [Service] IUserSyncService userSyncService,
         [Service] IHttpContextAccessor httpContextAccessor)
     {
-        var currentUser = httpContextAccessor.HttpContext?.Items["CurrentUser"] as User;
-        if (currentUser == null)
-            throw new UnauthorizedAccessException();
+        User currentUser = await userSyncService.GetCurrentUser(httpContextAccessor);
 
         var command = new CreateTaskCommand(
             input.Title,

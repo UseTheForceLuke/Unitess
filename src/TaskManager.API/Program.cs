@@ -55,14 +55,9 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
-using (var scope = app.Services.CreateScope())
-{
-    var dbContext = scope.ServiceProvider
-        .GetRequiredService<ApplicationDbContext>();
-    dbContext.Database.Migrate(); // Applies pending migrations
-}
+//app.UseHttpsRedirection();
 
-app.UseHttpsRedirection();
+ApplyMigrations(app);
 
 //app.UseAuthentication();
 //builder.Services.AddAuthorization(options =>
@@ -78,3 +73,13 @@ app.UseHttpsRedirection();
 //app.UseMiddleware<CurrentUserMiddleware>();
 
 app.Run();
+
+static void ApplyMigrations(WebApplication app)
+{
+    using (var scope = app.Services.CreateScope())
+    {
+        var dbContext = scope.ServiceProvider
+            .GetRequiredService<ApplicationDbContext>();
+        dbContext.Database.Migrate();
+    }
+}
