@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using TaskManager.Application.Tasks;
 
@@ -10,6 +10,8 @@ public static class DependencyInjection
     {
         services.AddMediatR(cfg => 
             cfg.RegisterServicesFromAssembly(typeof(CreateTaskCommand).Assembly));
+
+        services.AddValidatorsFromAssemblyContaining<CreateTaskCommandValidator>();
 
         return services;
     }
