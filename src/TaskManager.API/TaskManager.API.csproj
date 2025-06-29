@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+	<PackageReference Include="HotChocolate.AspNetCore.Playground" Version="10.5.5" />
 	<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.6">
 		<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		<PrivateAssets>all</PrivateAssets>
@@ -15,7 +16,8 @@
 	<PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
     <PackageReference Include="HotChocolate" Version="15.1.7" />
     <PackageReference Include="HotChocolate.AspNetCore" Version="15.1.7" />
-    <PackageReference Include="HotChocolate.Data" Version="15.1.7" />
+	<PackageReference Include="HotChocolate.Data" Version="15.1.7" />
+	<PackageReference Include="HotChocolate.Types" Version="15.1.7" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.4" NoWarn="NU1605" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="9.0.4" NoWarn="NU1605" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.4" />

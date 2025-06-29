@@ -1,19 +1,19 @@
 ﻿using Task = TaskManager.Domain.Tasks.Task;
-using MediatR;
-using TaskManager.Application.Tasks.Queries;
+using TaskManager.Infrastructure.Persistence;
 
 namespace TaskManager.API.GraphQL.Queries;
 
-[ExtendObjectType(OperationTypeNames.Query)]
+[ExtendObjectType("Query")]
 public class TaskQueries
 {
     [UsePaging]
     [UseProjection]
     [UseFiltering]
     [UseSorting]
-    public async Task<IQueryable<Task>> GetTasks(
-        [Service] IMediator mediator)
+    public IQueryable<Task> GetTasks(
+        [Service] ApplicationDbContext context)
     {
-        return await mediator.Send(new GetTasksQuery());
+        return context.Tasks;
     }
+
 }

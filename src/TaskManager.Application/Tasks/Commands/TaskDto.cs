@@ -20,7 +20,7 @@ public class TaskDto
         Description = task.Description;
         Status = (TaskStatus)task.Status;
         CreatedAt = task.CreatedAt;
-        Creator = new UserDto(task.Creator);
-        AssignedUsers = task.UserTasks.Select(ut => new UserDto(ut.User));
+        //Creator = new UserDto(task.Creator);
+        //AssignedUsers = task.UserTasks.Select(ut => new UserDto(ut.User));
     }
 }

@@ -1,14 +1,20 @@
+using HotChocolate.AspNetCore;
+using HotChocolate.AspNetCore.Playground;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Identity.Web;
+using SharedKernel;
 using TaskManager.Api.Middleware;
 using TaskManager.API;
+using TaskManager.API.GraphQL;
 using TaskManager.API.GraphQL.Mutations;
 using TaskManager.API.GraphQL.Queries;
 using TaskManager.Application;
 using TaskManager.Application.Abstraction;
 using TaskManager.Application.Tasks;
+using TaskManager.Application.Users.Commands;
 using TaskManager.Infrastructure;
 using TaskManager.Infrastructure.Persistence;
 
@@ -35,11 +41,25 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services
     .AddGraphQLServer()
-    .AddQueryType<TaskQueries>()
-    .AddMutationType<TaskMutations>()
-    .AddProjections()
+    .AddSorting(config =>
+    {
+        config.AddDefaults();
+        config.BindRuntimeType<TaskManager.Domain.Tasks.Task, TaskSortType>();
+    })
+    .ModifyOptions(options =>
+    {
+        options.DefaultBindingBehavior = BindingBehavior.Explicit; // Only register explicit types
+    })
+    .AddQueryType(d => d.Name("Query"))
+        .AddTypeExtension<TaskQueries>()
+    // Register all types explicitly
+    .AddType<TaskStatusType>()
+    .AddType<CreateTaskInputType>()
+    .AddType<UserInputType>()
+    .AddType<TaskSortType>()
+    .AddType<TaskType>()
     .AddFiltering()
-    .AddSorting()
+    .AddProjections()
     .AddErrorFilter(error =>
     {
         if (error.Exception is UnauthorizedAccessException)
@@ -51,10 +71,19 @@ var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
-    app.UsePlayground();
+    app.UsePlayground(new PlaygroundOptions
+    {
+        Path = "/playground",
+        QueryPath = "/graphql",
+        SubscriptionPath = "/graphql"
+    });
 }
 
-//app.UseHttpsRedirection();
+app.UseRouting();
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapGraphQL();
+});
 
 ApplyMigrations(app);
 

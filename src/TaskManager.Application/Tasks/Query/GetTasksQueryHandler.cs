@@ -1,5 +1,4 @@
 ﻿using MediatR;
-using Microsoft.EntityFrameworkCore;
 using TaskManager.Application.Abstraction;
 using Task = TaskManager.Domain.Tasks.Task;
 using Task_ = System.Threading.Tasks.Task;
@@ -21,6 +20,6 @@ public class GetTasksQueryHandler : IRequestHandler<GetTasksQuery, IQueryable<Ta
         GetTasksQuery request,
         CancellationToken cancellationToken)
     {
-        return Task_.FromResult(_context.Tasks.AsQueryable().AsNoTracking());
+        return Task_.FromResult(_context.Tasks.AsQueryable());
     }
 }

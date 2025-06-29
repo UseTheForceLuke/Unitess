@@ -10,26 +10,26 @@ using TaskManager.Domain.Users;
 
 namespace TaskManager.API.GraphQL.Mutations;
 
-[ExtendObjectType(OperationTypeNames.Mutation)]
+//[ExtendObjectType("Mutation")]
 public class TaskMutations
 {
     //[Authorize(Policy = "User")]
-    public async Task<TaskDto> CreateTask(
-        CreateTaskInput input,
-        [Service] IMediator mediator,
-        [Service] IUserSyncService userSyncService,
-        [Service] IHttpContextAccessor httpContextAccessor)
-    {
-        User currentUser = await userSyncService.GetCurrentUser(httpContextAccessor);
+    //public async Task<TaskDto> CreateTask(
+    //    CreateTaskInput input,
+    //    [Service] IMediator mediator,
+    //    [Service] IUserSyncService userSyncService,
+    //    [Service] IHttpContextAccessor httpContextAccessor)
+    //{
+    //    User currentUser = await userSyncService.GetCurrentUser(httpContextAccessor);
 
-        var command = new CreateTaskCommand(
-            input.Title,
-            input.Description,
-            currentUser.Id,
-            input.AssignedUserIds);
+    //    var command = new CreateTaskCommand(
+    //        input.Title,
+    //        input.Description,
+    //        currentUser.Id,
+    //        input.AssignedUserIds);
 
-        return await mediator.Send(command);
-    }
+    //    return await mediator.Send(command);
+    //}
 
     //[Authorize(Policy = "User")]
     //public async Task<TaskDto> UpdateTask(
