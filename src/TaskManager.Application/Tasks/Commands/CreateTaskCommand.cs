@@ -4,7 +4,8 @@ using Task = TaskManager.Domain.Tasks.Task;
 
 namespace TaskManager.Application.Tasks;
 
-public record CreateTaskCommand(string Title, 
+public record CreateTaskCommand(
+    string Title, 
     string Description,
     Guid CreatorId, 
     IEnumerable<Guid> AssignedUserIds) : IRequest<TaskDto>;

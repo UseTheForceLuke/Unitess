@@ -10,13 +10,13 @@ public class Task : Entity
     public string Description { get; private set; }
     public TaskStatus Status { get; private set; }
     public DateTime CreatedAt { get; private set; }
-    public int CreatorId { get; private set; }
+    public Guid CreatorId { get; private set; }
     public User Creator { get; private set; }
     public ICollection<UserTask> UserTasks { get; private set; } = new List<UserTask>();
 
     protected Task() { } // For EF
 
-    public Task(string title, string description, int creatorId)
+    public Task(string title, string description, Guid creatorId)
     {
         Title = title;
         Description = description;

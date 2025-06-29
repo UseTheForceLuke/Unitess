@@ -1,6 +1,6 @@
 ﻿using MediatR;
 
-namespace TaskManager.Application.Users.Events;
+namespace TaskManager.SharedKernel.Events;
 
 public record UserCreatedEvent(
     string SubjectId,

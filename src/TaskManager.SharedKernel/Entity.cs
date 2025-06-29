@@ -6,7 +6,7 @@ public abstract class Entity
 {
     private readonly List<IDomainEvent> _domainEvents = new List<IDomainEvent>();
 
-    public List<IDomainEvent> DomainEvents => new List<IDomainEvent>(_domainEvents);
+    public List<IDomainEvent> DomainEvents => new(_domainEvents);
 
     public void ClearDomainEvents()
     {

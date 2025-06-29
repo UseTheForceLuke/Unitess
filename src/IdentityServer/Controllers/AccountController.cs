@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
-using TaskManager.Application.Users.Events;
 using TaskManager.SharedKernel.Events;
 
 namespace IdentityServer.Controllers;

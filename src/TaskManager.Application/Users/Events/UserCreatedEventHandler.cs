@@ -1,6 +1,6 @@
 ﻿using MediatR;
 using TaskManager.Application.Abstraction;
-using TaskManager.Application.Users.Events;
+using TaskManager.SharedKernel.Events;
 
 namespace TaskManager.Application.Users.EventHandlers;
 
@@ -18,7 +18,6 @@ public class UserCreatedEventHandler : INotificationHandler<UserCreatedEvent>
         await _userSyncService.GetOrCreateUserAsync(
             notification.SubjectId,
             notification.Username,
-            notification.Name,
             notification.Email);
     }
 }

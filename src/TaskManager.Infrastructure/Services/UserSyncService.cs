@@ -1,19 +1,16 @@
 ﻿using System.Security.Claims;
 using TaskManager.Application.Abstraction;
 using TaskManager.Domain.Users;
-using TaskManager.Domain.Users.Repositories;
 
 namespace TaskManager.Application.Services;
 
 public class UserSyncService : IUserSyncService
 {
-    private readonly IUserRepository _userRepository;
-    private readonly IUnitOfWork _unitOfWork;
+    private readonly IApplicationDbContext _context;
 
-    public UserSyncService(IUserRepository userRepository, IUnitOfWork unitOfWork)
+    public UserSyncService(IApplicationDbContext context)
     {
-        _userRepository = userRepository;
-        _unitOfWork = unitOfWork;
+        _context = context;
     }
 
     public async Task<User> SyncUserFromClaimsAsync(ClaimsPrincipal principal)
@@ -26,15 +23,15 @@ public class UserSyncService : IUserSyncService
         if (string.IsNullOrEmpty(subjectId))
             throw new InvalidOperationException("No sub claim found");
 
-        return await GetOrCreateUserAsync(subjectId, username, name, email);
+        return await GetOrCreateUserAsync(subjectId, username, email);
     }
 
-    public async Task<User> GetOrCreateUserAsync(string subjectId, string username, string name, string email)
+    public async Task<User> GetOrCreateUserAsync(string subjectId, string username, string email)
     {
         if (!Guid.TryParse(subjectId, out var userId))
             throw new ArgumentException("Invalid subject ID format");
 
-        var user = await _userRepository.GetByIdAsync(userId);
+        var user = await _context.Users.FindAsync(userId);
 
         if (user == null)
         {
@@ -42,13 +39,12 @@ public class UserSyncService : IUserSyncService
             {
                 Id = userId,
                 Username = username,
-                Name = name,
                 Email = email,
                 Role = UserRole.User // Default role
             };
 
-            await _userRepository.AddAsync(user);
-            await _unitOfWork.CommitAsync(CancellationToken.None);
+            _context.Users.Attach(user);
+            await _context.SaveChangesAsync(CancellationToken.None);
         }
 
         return user;

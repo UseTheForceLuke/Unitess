@@ -2,8 +2,11 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Identity.Web;
 using TaskManager.Api.Middleware;
+using TaskManager.API;
+using TaskManager.Application;
 using TaskManager.Application.Abstraction;
 using TaskManager.Application.Services;
+using TaskManager.Application.Tasks;
 using TaskManager.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -13,14 +16,10 @@ builder.Configuration
     .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", true)
     .AddEnvironmentVariables();
 
-// Application
-builder.Services.AddScoped<IUserSyncService, UserSyncService>();
-
-// Infrastructure
-builder.Services.AddHostedService<IdentityServerEventConsumer>();
-
-// Presentation
-builder.Services.AddTransient<CurrentUserMiddleware>();
+builder.Services
+    .AddInfrastructure(builder.Configuration)
+    .AddApplication()
+    .AddPresentation();
 
 // Add authentication (make sure to configure your JWT bearer options)
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -30,7 +29,6 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         options.Audience = "taskmanager.api";
         options.RequireHttpsMetadata = false; // Only for development
     });
-
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();

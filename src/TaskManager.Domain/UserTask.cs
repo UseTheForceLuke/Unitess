@@ -6,18 +6,18 @@ namespace TaskManager.Domain;
 
 public class UserTask : Entity
 {
-    public int UserId { get; private set; }
-    public User User { get; private set; }
-    public int TaskId { get; private set; }
-    public Task Task { get; private set; }
-    public bool IsCreator { get; private set; }
+    public Guid UserId { get; set; }
+    public User User { get; set; }
+    public Guid TaskId { get; set; }
+    public Task Task { get; set; }
+    public bool IsCreator { get; set; }
 
     protected UserTask() { } // For EF
 
-    public UserTask(int userId, int TaskId, bool isCreator = false)
+    public UserTask(Guid userId, Guid taskId, bool isCreator = false)
     {
         UserId = userId;
-        TaskId = TaskId;
+        TaskId = taskId;
         IsCreator = isCreator;
     }
 }

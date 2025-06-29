@@ -1,13 +1,12 @@
-﻿// IdentityServerEventConsumer.cs
-using System.Text;
+﻿using System.Text;
 using System.Text.Json;
 using MediatR;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
-using TaskManager.Application.Users.Events;
 using TaskManager.SharedKernel.EventBus;
+using TaskManager.SharedKernel.Events;
 
 namespace TaskManager.Infrastructure;
 
