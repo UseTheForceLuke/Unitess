@@ -8,7 +8,6 @@ using TaskManager.API.GraphQL.Mutations;
 using TaskManager.API.GraphQL.Queries;
 using TaskManager.Application;
 using TaskManager.Application.Abstraction;
-using TaskManager.Application.Services;
 using TaskManager.Application.Tasks;
 using TaskManager.Infrastructure;
 using TaskManager.Infrastructure.Persistence;
@@ -52,7 +51,7 @@ var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    app.UsePlayground();
 }
 
 //app.UseHttpsRedirection();
@@ -70,7 +69,7 @@ ApplyMigrations(app);
 //    options.AddPolicy("User", policy =>
 //        policy.RequireAuthenticatedUser());
 //});
-//app.UseMiddleware<CurrentUserMiddleware>();
+app.UseMiddleware<CurrentUserMiddleware>();
 
 app.Run();
 

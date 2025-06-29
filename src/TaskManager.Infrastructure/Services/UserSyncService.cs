@@ -3,7 +3,7 @@ using System.Security.Claims;
 using TaskManager.Application.Abstraction;
 using TaskManager.Domain.Users;
 
-namespace TaskManager.Application.Services;
+namespace TaskManager.Infrastructure.Services;
 
 public class UserSyncService : IUserSyncService
 {

@@ -32,8 +32,8 @@ services:
       ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT}
       CERT_PASSWORD: ${CERT_PASSWORD}
       ASPNETCORE_URLS: http://+:8080;https://+:8081;http://+:5000;https://+:5001 # interal container ports
-      ConnectionStrings__IdentityDb: ${CONNECTION_STRING_IDENTITY_DB}
-      EventBus__ConnectionString: ${CONNECTION_STRING_EVENT_BUS}
+      ConnectionStrings__IdentityDb: ${IDENTITY_SERVER_DB_CONNECTION_STRING}
+      EventBus__ConnectionString: ${EVENT_BUS_CONNECTION_STRING}
     volumes:
       - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
       - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
@@ -51,13 +51,14 @@ services:
   # RabbitMQ
   rabbitmq:
     container_name: rabbitmq
+    hostname: rabbitmq
     image: rabbitmq:3-management
     ports:
-      - "${RABBIT_MQ_AMQP_PORT}:5672"
-      - "${RABBIT_MQ_UI_PORT}:15672"
+      - "${RABBITMQ_AMQP_PORT}:5672"
+      - "${RABBITMQ_UI_PORT}:15672"
     environment:
-      RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS}
     healthcheck:
       test: ["CMD", "rabbitmqctl", "status"]
       interval: 30s
@@ -72,7 +73,6 @@ services:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: taskmanager
-      ASPNETCORE_URLS: http://+:8080;https://+:8081;
     ports:
       - ${TASK_MANAGER_API_DB_PORT}:5432
     volumes:
@@ -86,7 +86,9 @@ services:
   # TaskManager API
   taskmanager-api:
     container_name: taskManager-api
-    build: ./TaskManager.API
+    build:
+        context: .
+        dockerfile: src/TaskManager.API/Dockerfile
     ports:
       - "${TASK_MANAGER_API_HTTP_PORT}:80"
       - "${TASK_MANAGER_API_HTTPS_PORT}:443"
@@ -94,7 +96,13 @@ services:
       ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__TaskManagerDb: ${TASK_MANAGER_CONNECTION_STRING__DB}
       IdentityServer__Authority: ${IDENTITY_SERVER_AUTHORITY}
-      EventBus__ConnectionString: ${CONNECTION_STRING_EVENT_BUS}
+      EventBus__ConnectionString: ${EVENT_BUS_CONNECTION_STRING}
+      EventBus__Host: ${RABBITMQ_HOST}
+      EventBus__Username: ${RABBITMQ_USER}
+      EventBus__Password: ${RABBITMQ_PASS}
+      EventBus__VirtualHost: ${EVENT_BUS_VIRTUAL_HOST}
+      EventBus__Port: ${RABBITMQ_UI_PORT}
+      ASPNETCORE_URLS: http://+:8080;https://+:8081;
     volumes:
       - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
       - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
@@ -111,6 +119,7 @@ services:
       timeout: 10s
       retries: 5
 
+  # Seq
   seq:
     image: datalust/seq:2024.3
     container_name: seq

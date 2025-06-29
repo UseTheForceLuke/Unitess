@@ -1,6 +1,7 @@
 ﻿using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
+using TaskManager.Application.Abstraction;
 using TaskManager.Application.Behaviors;
 using TaskManager.Application.Tasks;
 
