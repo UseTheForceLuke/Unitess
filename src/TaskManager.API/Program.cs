@@ -14,6 +14,7 @@ using TaskManager.API.GraphQL.Queries;
 using TaskManager.Application;
 using TaskManager.Application.Abstraction;
 using TaskManager.Application.Tasks;
+using TaskManager.Application.Tasks.Commands;
 using TaskManager.Application.Users.Commands;
 using TaskManager.Infrastructure;
 using TaskManager.Infrastructure.Persistence;
@@ -44,7 +45,7 @@ builder.Services
     .AddSorting(config =>
     {
         config.AddDefaults();
-        config.BindRuntimeType<TaskManager.Domain.Tasks.Task, TaskSortType>();
+        //config.BindRuntimeType<TaskManager.Domain.Tasks.Task, TaskSortType>();
     })
     .ModifyOptions(options =>
     {
@@ -57,7 +58,9 @@ builder.Services
     .AddType<CreateTaskInputType>()
     .AddType<UserInputType>()
     .AddType<TaskSortType>()
-    .AddType<TaskType>()
+    .AddType<TaskDtoType>() // Add this
+    .AddType<UserDtoType>() // Add this
+    .AddType<TaskDtoSortType>() // Uncomment this
     .AddFiltering()
     .AddProjections()
     .AddErrorFilter(error =>

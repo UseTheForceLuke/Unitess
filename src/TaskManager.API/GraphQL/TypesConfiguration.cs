@@ -1,5 +1,6 @@
 ﻿using HotChocolate.Data.Sorting;
 using TaskManager.API.Mutations;
+using TaskManager.Application.Tasks.Commands;
 using TaskManager.Application.Users.Commands;
 
 namespace TaskManager.API.GraphQL;
@@ -25,6 +26,7 @@ public class UserInputType : InputObjectType<UserDto>
         // Add other fields as needed
     }
 }
+
 // Enum Types
 public class TaskStatusType : EnumType<TaskManager.Domain.Tasks.TaskStatus>
 {
@@ -50,22 +52,59 @@ public class TaskSortType : SortInputType<TaskManager.Domain.Tasks.Task>
     }
 }
 
-public class TaskType : ObjectType<TaskManager.Domain.Tasks.Task>
+public class TaskDtoType : ObjectType<TaskDto>
 {
-    protected override void Configure(IObjectTypeDescriptor<TaskManager.Domain.Tasks.Task> descriptor)
+    protected override void Configure(IObjectTypeDescriptor<TaskDto> descriptor)
     {
-        descriptor.Field(t => t.Id).Type<NonNullType<IdType>>();
-        descriptor.Field(t => t.Title).Type<NonNullType<StringType>>();
-        descriptor.Field(t => t.Description).Type<StringType>();
-        descriptor.Field(t => t.Status).Type<NonNullType<TaskStatusType>>();
-        descriptor.Field(t => t.CreatedAt).Type<NonNullType<DateTimeType>>();
-
-        // For navigation properties, either:
-        // 1. Exclude them
-        descriptor.Ignore(t => t.Creator);
-        descriptor.Ignore(t => t.UserTasks);
-
-        // OR 2. Configure them properly
-        // descriptor.Field(t => t.Creator).Type<UserType>();
+        descriptor.Field(x => x.Id).Type<NonNullType<IdType>>();
+        descriptor.Field(x => x.Title).Type<NonNullType<StringType>>();
+        descriptor.Field(x => x.Description).Type<StringType>();
+        descriptor.Field(x => x.Status).Type<NonNullType<TaskStatusType>>();
+        descriptor.Field(x => x.CreatedAt).Type<NonNullType<DateTimeType>>();
+        descriptor.Field(x => x.Creator).Type<UserDtoType>();
+        descriptor.Field(x => x.AssignedUsers).Type<ListType<UserDtoType>>();
     }
 }
+
+public class UserDtoType : ObjectType<UserDto>
+{
+    protected override void Configure(IObjectTypeDescriptor<UserDto> descriptor)
+    {
+        descriptor.Field(x => x.Id).Type<NonNullType<IdType>>();
+        descriptor.Field(x => x.Username).Type<NonNullType<StringType>>();
+        // Add other UserDto fields as needed
+    }
+}
+
+public class TaskDtoSortType : SortInputType<TaskDto>
+{
+    protected override void Configure(ISortInputTypeDescriptor<TaskDto> descriptor)
+    {
+        descriptor.BindFieldsExplicitly();
+        descriptor.Field(x => x.Id).Name("id");
+        descriptor.Field(x => x.Title).Name("title");
+        descriptor.Field(x => x.Status).Name("status");
+        descriptor.Field(x => x.CreatedAt).Name("createdAt");
+        // Add other sortable fields as needed
+    }
+}
+
+//public class TaskType : ObjectType<TaskManager.Domain.Tasks.Task>
+//{
+//    protected override void Configure(IObjectTypeDescriptor<TaskManager.Domain.Tasks.Task> descriptor)
+//    {
+//        descriptor.Field(t => t.Id).Type<NonNullType<IdType>>();
+//        descriptor.Field(t => t.Title).Type<NonNullType<StringType>>();
+//        descriptor.Field(t => t.Description).Type<StringType>();
+//        descriptor.Field(t => t.Status).Type<NonNullType<TaskStatusType>>();
+//        descriptor.Field(t => t.CreatedAt).Type<NonNullType<DateTimeType>>();
+
+//        // For navigation properties, either:
+//        // 1. Exclude them
+//        //descriptor.Ignore(t => t.Creator);
+//        descriptor.Ignore(t => t.UserTasks);
+
+//        // OR 2. Configure them properly
+//        //descriptor.Field(t => t.Creator).Type<User>();
+//    }
+//}
