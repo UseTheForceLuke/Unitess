@@ -1,12 +1,14 @@
 ﻿using MediatR;
 using TaskManager.Application.Tasks.Commands;
 using TaskManager.Application.Tasks;
+using HotChocolate.Authorization;
 
 namespace TaskManager.API.GraphQL.Mutations;
 
 [ExtendObjectType("Mutation")]
 public partial class Mutations
 {
+    //[Authorize(Policy = "Admin,User")]
     public async Task<TaskDto> CreateTask(
         [Service] IMediator mediator,
         CreateTaskInput input,

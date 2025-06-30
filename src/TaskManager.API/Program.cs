@@ -1,21 +1,12 @@
 using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Playground;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Identity.Web;
-using SharedKernel;
 using TaskManager.Api.Middleware;
 using TaskManager.API;
 using TaskManager.API.GraphQL;
 using TaskManager.API.GraphQL.Mutations;
 using TaskManager.API.GraphQL.Queries;
-using TaskManager.Application;
-using TaskManager.Application.Abstraction;
-using TaskManager.Application.Tasks;
-using TaskManager.Application.Tasks.Commands;
-using TaskManager.Application.Users.Commands;
 using TaskManager.Infrastructure;
 using TaskManager.Infrastructure.Persistence;
 
@@ -62,6 +53,25 @@ builder.Services
         return error;
     });
 
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.Authority = builder.Configuration["IdentityServer:Authority"];
+        options.Audience = builder.Configuration["IdentityServer:Audience"];
+        options.RequireHttpsMetadata = bool.Parse(builder.Configuration["IdentityServer:RequireHttpsMetadata"]!);
+    });
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("Admin", policy =>
+        policy.RequireAssertion(context =>
+            context.User.HasClaim(c =>
+                c.Type == "role" && c.Value == "Admin")));
+
+    options.AddPolicy("User", policy =>
+        policy.RequireAuthenticatedUser());
+});
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -76,23 +86,6 @@ if (app.Environment.IsDevelopment())
 
 app.UseRouting();
 
-// Add this middleware before UseAuthorization()
-app.Use(async (context, next) =>
-{
-    // Check if request is coming from Playground
-    if (context.Request.Path.StartsWithSegments("/graphql") &&
-        context.Request.Headers.TryGetValue("Referer", out var referer) &&
-        referer.ToString().Contains("playground"))
-    {
-        // Skip auth for playground
-        await next();
-    }
-    else
-    {
-        // Apply auth for all other requests
-        await next();
-    }
-});
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -100,8 +93,7 @@ app.UseMiddleware<CurrentUserMiddleware>();
 
 app.UseEndpoints(endpoints =>
 {
-    endpoints.MapGraphQL()
-    .RequireAuthorization();
+    endpoints.MapGraphQL();
 });
 
 ApplyMigrations(app);

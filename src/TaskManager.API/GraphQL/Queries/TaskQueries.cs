@@ -8,7 +8,6 @@ namespace TaskManager.API.GraphQL.Queries;
 [ExtendObjectType("Query")]
 public partial class Queries
 {
-    [Authorize(Policy = "Admin,User")]
     [UsePaging]
     [UseProjection]
     [UseFiltering]

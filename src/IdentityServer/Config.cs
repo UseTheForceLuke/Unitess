@@ -21,12 +21,16 @@ public static class Config
     {
         new Client
         {
-            ClientId = "taskmanager.client", // TODO: do not hardoce it move to appsettings
+            ClientId = "taskmanager.api", // TODO: do not hardoce it move to appsettings
             AllowedGrantTypes = GrantTypes.ResourceOwnerPassword,
             ClientSecrets = { new Secret("secret".Sha256()) }, // TODO: do not hardoce it move to appsettings
             AllowedScopes = { "taskmanager.api", "openid", "profile" }, // TODO: do not hardoce it move to appsettings
             AlwaysIncludeUserClaimsInIdToken = true, // TODO: do not hardoce it move to appsettings
-            AlwaysSendClientClaims = true // TODO: do not hardoce it move to appsettings
+            AlwaysSendClientClaims = true, // TODO: do not hardoce it move to appsettings,
+            Claims = new[]
+            {
+                new ClientClaim("iss", "http://localhost:5011") // Match Authority
+            }
         }
     };
 }
