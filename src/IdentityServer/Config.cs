@@ -47,12 +47,14 @@ public static class Config
             AccessTokenLifetime = 3600 * 24 * 7, // 1 week (adjust as needed)
 
             // These ensure the audience claim is included
-            ClientClaimsPrefix = "",
-            Claims = new[]
-            {
-                new ClientClaim("aud", "taskmanager.api"),  // Explicit audience claim
-                new ClientClaim("role", "User") // Ensure claim type is "role"
-            }
+             // Remove the ClientClaim for role - this was the wrong approach
+            // Claims should come from the user, not the client
+            //ClientClaimsPrefix = "",
+            //Claims = new[]
+            //{
+            //    new ClientClaim("aud", "taskmanager.api"),  // Explicit audience claim
+            //    new ClientClaim("role", "User") // Ensure claim type is "role"
+            //}
         }
     };
 }

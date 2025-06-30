@@ -3,7 +3,6 @@ using HotChocolate.AspNetCore.Playground;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using TaskManager.Api.Middleware;
 using TaskManager.API;
 using TaskManager.API.GraphQL;
 using TaskManager.API.GraphQL.Mutations;
@@ -25,7 +24,11 @@ builder.Services
 
 builder.Services
     .AddGraphQLServer()
-    .AddAuthorization() // Enables @authorize directive
+    .AddAuthorization() // Enables @authorize directives
+    .ModifyOptions(options =>
+    {
+        options.DefaultBindingBehavior = BindingBehavior.Explicit; // Only register explicit types
+    })
     .ModifyRequestOptions(options =>
     {
         options.IncludeExceptionDetails = true; // Show exception details
@@ -36,7 +39,6 @@ builder.Services
     })
     .ModifyOptions(options =>
     {
-        options.DefaultBindingBehavior = BindingBehavior.Explicit; // Only register explicit types
     })
     .AddQueryType(d => d.Name("Query"))
         .AddTypeExtension<Queries>()
@@ -62,13 +64,30 @@ builder.Services
         return error;
     });
 
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.Authority = "http://localhost:5011";
+        options.Audience = "taskmanager.api";
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            NameClaimType = "name",
+            RoleClaimType = "http://schemas.microsoft.com/ws/2008/06/identity/claims/role", // "role", used to be This is critical
+            ValidateIssuer = true,
+            ValidIssuer = "http://localhost:5011",
+            ValidateAudience = true,
+            ValidAudience = "taskmanager.api"
+        };
+        options.RequireHttpsMetadata = false;
+    });
+
 //builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 //    .AddJwtBearer(options =>
 //    {
 //        options.Authority = "http://localhost:5011";
 //        options.Audience = "taskmanager.api";
+//        options.RequireHttpsMetadata = false;
 
-//        // Configure token validation
 //        options.TokenValidationParameters = new TokenValidationParameters
 //        {
 //            ValidateAudience = true,
@@ -77,74 +96,25 @@ builder.Services
 //            ValidIssuer = "http://localhost:5011",
 //            ValidateLifetime = true,
 //            ClockSkew = TimeSpan.Zero,
-//            RoleClaimType = "role",
-//            NameClaimType = "name",
-//            RequireSignedTokens = true,
 //            ValidateIssuerSigningKey = true,
-
-//            // Simplified key resolver
-//            IssuerSigningKeyResolver = async (token, securityToken, kid, parameters) =>
-//            {
-//                using var client = new HttpClient();
-//                var discoveryDocument = await client.GetDiscoveryDocumentAsync("http://localhost:5011");
-
-//                if (discoveryDocument.IsError)
-//                {
-//                    throw new Exception($"Discovery error: {discoveryDocument.Error}");
-//                }
-
-//                return discoveryDocument.KeySet.Keys;
-//            }
+//            RoleClaimType = "role",
+//            NameClaimType = "name"
 //        };
 
-//        options.RequireHttpsMetadata = false;
+//        // For development only - accept any certificate
+//        options.BackchannelHttpHandler = new HttpClientHandler
+//        {
+//            ServerCertificateCustomValidationCallback = (msg, cert, chain, errors) => true
+//        };
 //    });
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.Authority = "http://localhost:5011";
-        options.Audience = "taskmanager.api";
-
-        // Add these two critical lines:
-        options.RequireHttpsMetadata = false; // Disable HTTPS requirement
-        options.BackchannelHttpHandler = new HttpClientHandler
-        {
-            ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-        };
-
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateAudience = true,
-            ValidAudience = "taskmanager.api",
-            ValidateIssuer = true,
-            ValidIssuer = "http://localhost:5011",
-            ValidateLifetime = true,
-            ClockSkew = TimeSpan.Zero,
-            ValidateIssuerSigningKey = true,
-            RoleClaimType = "role",
-            NameClaimType = "name"
-        };
-
-        // Add this exact configuration:
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            ValidateIssuerSigningKey = true,
-            IssuerSigningKeyResolver = (token, securityToken, kid, parameters) =>
-            {
-                var client = new HttpClient();
-                var jwks = client.GetStringAsync($"{options.Authority}/.well-known/openid-configuration/jwks").Result;
-                return new JsonWebKeySet(jwks).GetSigningKeys();
-            },
-            // Rest of your validation parameters...
-        };
-    });
 
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy("Admin", policy => policy.RequireRole("Admin"));
+    //options.AddPolicy("Admin", policy => policy.RequireRole("Admin"));
     options.AddPolicy("User", policy =>
-        policy.RequireAuthenticatedUser()
-              .RequireClaim("role", "User")); // Changed from RequireRole to RequireClaim
+        policy.RequireClaim(
+            "http://schemas.microsoft.com/ws/2008/06/identity/claims/role",
+            "User"));
 });
 
 var app = builder.Build();
@@ -160,6 +130,26 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseRouting();
+
+// to debug token
+app.Use(async (context, next) =>
+{
+    // Log incoming token
+    var token = context.Request.Headers["Authorization"];
+    Console.WriteLine($"Token: {token}");
+
+    await next();
+
+    // Log authenticated user claims
+    if (context.User.Identity?.IsAuthenticated == true)
+    {
+        Console.WriteLine("User claims:");
+        foreach (var claim in context.User.Claims)
+        {
+            Console.WriteLine($"{claim.Type} = {claim.Value}");
+        }
+    }
+});
 
 app.UseAuthentication();
 app.UseAuthorization();
