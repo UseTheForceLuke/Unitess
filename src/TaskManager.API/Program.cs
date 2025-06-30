@@ -36,8 +36,9 @@ builder.Services
     {
         config.AddDefaults();
     })
-    .AddQueryType(d => d.Name("Query"))
-        .AddTypeExtension<Queries>()
+    .AddQueryType<Query>() // Explicitly specify your root Query type
+    .AddTypeExtension<TaskQueries>() // Register TaskQueries
+    .AddTypeExtension<UserQueries>() // Register UserQueries
     .AddMutationType(d => d.Name("Mutation"))
         .AddTypeExtension<Mutations>()
     // Register all types explicitly
@@ -49,6 +50,7 @@ builder.Services
     .AddType<UserDtoType>()
     .AddType<TaskDtoSortType>()
     .AddType<TaskFilterInputType>()
+    .AddType<UserDtoSortInputType>()
     .AddFiltering()
     .AddProjections()
     .AddErrorFilter(error =>
@@ -116,4 +118,10 @@ static void ApplyMigrations(WebApplication app)
             .GetRequiredService<ApplicationDbContext>();
         dbContext.Database.Migrate();
     }
+}
+
+// Query.cs (root query type)
+public class Query
+{
+    // Can be empty if all fields come from extensions
 }

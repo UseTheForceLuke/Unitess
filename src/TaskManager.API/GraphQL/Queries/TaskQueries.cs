@@ -6,8 +6,8 @@ using TaskManager.Application.Abstraction;
 
 namespace TaskManager.API.GraphQL.Queries;
 
-[ExtendObjectType("Query")]
-public partial class Queries
+[ExtendObjectType(OperationTypeNames.Query)]
+public class TaskQueries
 {
     [Authorize(Policy = "AdminOrUser")]
     [UsePaging]

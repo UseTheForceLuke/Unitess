@@ -26,8 +26,7 @@ public class UserInputType : InputObjectType<UserDto>
     protected override void Configure(IInputObjectTypeDescriptor<UserDto> descriptor)
     {
         descriptor.Field(x => x.Id).Type<NonNullType<UuidType>>();
-        descriptor.Field(x => x.Username).Type<NonNullType<StringType>>();
-        // Add other fields as needed
+        descriptor.Field(x => x.Username).Type<StringType>();
     }
 }
 
@@ -98,6 +97,18 @@ public class UserDtoType : ObjectType<UserDto>
     {
         descriptor.Field(x => x.Id).Type<NonNullType<IdType>>();
         descriptor.Field(x => x.Username).Type<NonNullType<StringType>>();
-        // Add other UserDto fields as needed
+        descriptor.Field(u => u.Email).Type<StringType>();
+        descriptor.Field(u => u.Role).Type<StringType>();
+    }
+}
+
+public class UserDtoSortInputType : SortInputType<UserDto>
+{
+    protected override void Configure(ISortInputTypeDescriptor<UserDto> descriptor)
+    {
+        descriptor.BindFieldsExplicitly();
+        descriptor.Field(u => u.Id).Name("id");
+        descriptor.Field(u => u.Username).Name("username");
+        descriptor.Field(u => u.Email).Name("email");
     }
 }
