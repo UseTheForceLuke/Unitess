@@ -24,6 +24,5 @@ dotnet dev-certs https -ep "$env:APPDATA\ASP.NET\Https\Identityerver.pfx" -p "yo
 then run<br>
 dotnet user-secrets set "Kestrel:Certificates:Development:Password" "your_password"<br>
 in .env file you can change your_password if needed<br>
-docker-compose up -d --build taskmanager-db rabbitmq identityserver-db identityserver
-works: docker-compose up -d --build taskmanager-db rabbitmq identityserver-db identityserver seq<br>
-and then run locally TaskManager.API.pfx
+docker-compose up -d --build taskmanager-db rabbitmq identityserver-db identityserver seq<br>
+and then run locally TaskManager.API
