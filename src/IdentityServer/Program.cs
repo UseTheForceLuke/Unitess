@@ -16,7 +16,6 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Hosting;
-using System.Runtime.ConstrainedExecution;
 using System.IO;
 using System.Security.Cryptography.X509Certificates;
 
