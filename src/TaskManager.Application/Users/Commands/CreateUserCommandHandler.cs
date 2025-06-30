@@ -1,21 +1,13 @@
-﻿//using MediatR;
-//using TaskManager.Application.Abstraction;
-//using TaskManager.Domain.Users.Repositories;
+﻿using MediatR;
 
-//namespace TaskManager.Application.Users.Commands;
-//public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, UserDto>
-//{
-//    private readonly IUserRepository _userRepository;
-//    private readonly IUnitOfWork _unitOfWork;
+namespace TaskManager.Application.Users.Commands;
 
-//    public CreateUserCommandHandler(IPa)
-//    {
-//        _userRepository = userRepository;
-//        _unitOfWork = unitOfWork;
-//    }
+public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, UserDto>
+{
+    public async Task<UserDto> Handle(CreateUserCommand request, CancellationToken cancellationToken)
+    {
+        // TODO: consume event from Identity server when user is registered
 
-//    public async Task<UserDto> Handle(CreateUserCommand request, CancellationToken cancellationToken)
-//    {
-//        throw new NotImplementedException();
-//    }
-//}
+        throw new NotImplementedException();
+    }
+}

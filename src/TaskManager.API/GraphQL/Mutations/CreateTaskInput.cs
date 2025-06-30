@@ -1,4 +1,4 @@
-﻿using TaskManager.Application.Users.Commands;
+﻿using TaskStatus = TaskManager.Domain.Tasks.TaskStatus;
 
 namespace TaskManager.API.Mutations;
 
@@ -8,7 +8,5 @@ public class CreateTaskInput
     public string Title { get; set; }
     public string Description { get; set; }
     public TaskStatus Status { get; set; }
-    public DateTime CreatedAt { get; set; }
-    public UserDto Creator { get; set; }
-    public IEnumerable<Guid> AssignedUserIds { get; set; }
+    public IEnumerable<string> AssignedUserIds { get; set; } = new List<string>();
 }

@@ -8,5 +8,5 @@ public interface IUserSyncService
 {
     Task<User> SyncUserFromClaimsAsync(ClaimsPrincipal principal);
     Task<User> GetOrCreateUserAsync(string subjectId, string username, string email);
-    Task<User> GetCurrentUser(IHttpContextAccessor httpContextAccessor);
+    Task<User> GetCurrentUser();
 }

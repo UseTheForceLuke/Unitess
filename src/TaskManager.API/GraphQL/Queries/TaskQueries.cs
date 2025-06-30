@@ -1,12 +1,11 @@
-﻿using Task = TaskManager.Domain.Tasks.Task;
-using TaskManager.Infrastructure.Persistence;
+﻿using TaskManager.Infrastructure.Persistence;
 using TaskManager.Application.Tasks.Commands;
 using TaskManager.Application.Users.Commands;
 
 namespace TaskManager.API.GraphQL.Queries;
 
 [ExtendObjectType("Query")]
-public class TaskQueries
+public partial class Queries
 {
     [UsePaging]
     [UseProjection]
@@ -14,7 +13,7 @@ public class TaskQueries
     [UseSorting(typeof(TaskDtoSortType))]
     public IQueryable<TaskDto> GetTasks([Service] ApplicationDbContext context)
     {
-        return context.Tasks.Select(t => new TaskDto // Using object initialization
+        return context.Tasks.Select(t => new TaskDto
         {
             Id = t.Id,
             Title = t.Title,

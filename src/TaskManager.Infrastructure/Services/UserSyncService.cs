@@ -8,10 +8,12 @@ namespace TaskManager.Infrastructure.Services;
 public class UserSyncService : IUserSyncService
 {
     private readonly IApplicationDbContext _context;
+    private readonly IHttpContextAccessor httpContextAccessor;
 
-    public UserSyncService(IApplicationDbContext context)
+    public UserSyncService(IApplicationDbContext context, IHttpContextAccessor httpContextAccessor)
     {
         _context = context;
+        this.httpContextAccessor = httpContextAccessor;
     }
 
     public async Task<User> SyncUserFromClaimsAsync(ClaimsPrincipal principal)
@@ -51,7 +53,7 @@ public class UserSyncService : IUserSyncService
         return user;
     }
 
-    public async Task<User> GetCurrentUser(IHttpContextAccessor httpContextAccessor)
+    public async Task<User> GetCurrentUser()
     {
         var currentUser = httpContextAccessor.HttpContext?.Items["CurrentUser"] as User;
 

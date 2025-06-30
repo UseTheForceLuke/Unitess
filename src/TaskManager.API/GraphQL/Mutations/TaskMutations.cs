@@ -1,74 +1,23 @@
-﻿using HotChocolate.Authorization;
-using HotChocolate.Types;
-using MediatR;
-using TaskManager.API.Mutations;
-using TaskManager.Application.Abstraction;
-using TaskManager.Application.Tasks;
+﻿using MediatR;
 using TaskManager.Application.Tasks.Commands;
-using TaskManager.Application.Users.Commands;
-using TaskManager.Domain.Users;
+using TaskManager.API.Mutations;
+using TaskManager.Application.Tasks;
 
 namespace TaskManager.API.GraphQL.Mutations;
 
-//[ExtendObjectType("Mutation")]
-public class TaskMutations
+[ExtendObjectType("Mutation")]
+public partial class Mutations
 {
-    //[Authorize(Policy = "User")]
-    //public async Task<TaskDto> CreateTask(
-    //    CreateTaskInput input,
-    //    [Service] IMediator mediator,
-    //    [Service] IUserSyncService userSyncService,
-    //    [Service] IHttpContextAccessor httpContextAccessor)
-    //{
-    //    User currentUser = await userSyncService.GetCurrentUser(httpContextAccessor);
-
-    //    var command = new CreateTaskCommand(
-    //        input.Title,
-    //        input.Description,
-    //        currentUser.Id,
-    //        input.AssignedUserIds);
-
-    //    return await mediator.Send(command);
-    //}
-
-    //[Authorize(Policy = "User")]
-    //public async Task<TaskDto> UpdateTask(
-    //    UpdateTaskInput input,
-    //    [Service] IMediator mediator,
-    //    [Service] IHttpContextAccessor httpContextAccessor)
-    //{
-    //    var currentUser = httpContextAccessor.HttpContext?.Items["CurrentUser"] as User;
-    //    if (currentUser == null)
-    //        throw new UnauthorizedAccessException();
-
-    //    var command = new UpdateTaskCommand(
-    //        input.Id,
-    //        input.Title,
-    //        input.Description,
-    //        input.Status,
-    //        currentUser.Id);
-
-    //    return await mediator.Send(command);
-    //}
-
-    //[Authorize(Policy = "Admin")]
-    //public async Task<bool> DeleteTask(
-    //    Guid id,
-    //    [Service] IMediator mediator)
-    //{
-    //    var command = new DeleteTaskCommand(id);
-    //    await mediator.Send(command);
-    //    return true;
-    //}
-
-    //[Authorize(Policy = "Admin")]
-    //public async Task<bool> AssignTaskToUser(
-    //    Guid taskId,
-    //    Guid userId,
-    //    [Service] IMediator mediator)
-    //{
-    //    var command = new AssignTaskCommand(taskId, userId);
-    //    await mediator.Send(command);
-    //    return true;
-    //}
+    public async Task<TaskDto> CreateTask(
+        [Service] IMediator mediator,
+        CreateTaskInput input,
+        CancellationToken cancellationToken)
+    {
+        return await mediator.Send(new CreateTaskCommand(
+            Title: input.Title,
+            Description: input.Description,
+            Status: input.Status,
+            AssignedUserIds: input.AssignedUserIds.Select(Guid.Parse) // TODO: add validator
+        ), cancellationToken);
+    }
 }

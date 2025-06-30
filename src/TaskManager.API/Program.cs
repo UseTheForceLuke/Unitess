@@ -45,14 +45,15 @@ builder.Services
     .AddSorting(config =>
     {
         config.AddDefaults();
-        //config.BindRuntimeType<TaskManager.Domain.Tasks.Task, TaskSortType>();
     })
     .ModifyOptions(options =>
     {
         options.DefaultBindingBehavior = BindingBehavior.Explicit; // Only register explicit types
     })
     .AddQueryType(d => d.Name("Query"))
-        .AddTypeExtension<TaskQueries>()
+        .AddTypeExtension<Queries>()
+    .AddMutationType(d => d.Name("Mutation"))
+        .AddTypeExtension<Mutations>()
     // Register all types explicitly
     .AddType<TaskStatusType>()
     .AddType<CreateTaskInputType>()

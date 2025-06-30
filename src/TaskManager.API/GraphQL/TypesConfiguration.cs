@@ -5,6 +5,8 @@ using TaskManager.Application.Users.Commands;
 
 namespace TaskManager.API.GraphQL;
 
+// TODO: move to separate files
+
 // Input Types
 public class CreateTaskInputType : InputObjectType<CreateTaskInput>
 {
@@ -13,7 +15,9 @@ public class CreateTaskInputType : InputObjectType<CreateTaskInput>
         descriptor.Field(x => x.Title).Type<NonNullType<StringType>>();
         descriptor.Field(x => x.Description).Type<StringType>();
         descriptor.Field(x => x.Status).Type<NonNullType<TaskStatusType>>();
-        descriptor.Field(x => x.AssignedUserIds).Type<NonNullType<ListType<NonNullType<UuidType>>>>();
+        descriptor.Field(x => x.AssignedUserIds)
+            .Type<NonNullType<ListType<NonNullType<StringType>>>>()
+            .Name("assignedUserIds");
     }
 }
 
@@ -52,6 +56,20 @@ public class TaskSortType : SortInputType<TaskManager.Domain.Tasks.Task>
     }
 }
 
+public class TaskDtoSortType : SortInputType<TaskDto>
+{
+    protected override void Configure(ISortInputTypeDescriptor<TaskDto> descriptor)
+    {
+        descriptor.BindFieldsExplicitly();
+        descriptor.Field(x => x.Id).Name("id");
+        descriptor.Field(x => x.Title).Name("title");
+        descriptor.Field(x => x.Status).Name("status");
+        descriptor.Field(x => x.CreatedAt).Name("createdAt");
+        // Add other sortable fields as needed
+    }
+}
+
+// Dtos
 public class TaskDtoType : ObjectType<TaskDto>
 {
     protected override void Configure(IObjectTypeDescriptor<TaskDto> descriptor)
@@ -75,36 +93,3 @@ public class UserDtoType : ObjectType<UserDto>
         // Add other UserDto fields as needed
     }
 }
-
-public class TaskDtoSortType : SortInputType<TaskDto>
-{
-    protected override void Configure(ISortInputTypeDescriptor<TaskDto> descriptor)
-    {
-        descriptor.BindFieldsExplicitly();
-        descriptor.Field(x => x.Id).Name("id");
-        descriptor.Field(x => x.Title).Name("title");
-        descriptor.Field(x => x.Status).Name("status");
-        descriptor.Field(x => x.CreatedAt).Name("createdAt");
-        // Add other sortable fields as needed
-    }
-}
-
-//public class TaskType : ObjectType<TaskManager.Domain.Tasks.Task>
-//{
-//    protected override void Configure(IObjectTypeDescriptor<TaskManager.Domain.Tasks.Task> descriptor)
-//    {
-//        descriptor.Field(t => t.Id).Type<NonNullType<IdType>>();
-//        descriptor.Field(t => t.Title).Type<NonNullType<StringType>>();
-//        descriptor.Field(t => t.Description).Type<StringType>();
-//        descriptor.Field(t => t.Status).Type<NonNullType<TaskStatusType>>();
-//        descriptor.Field(t => t.CreatedAt).Type<NonNullType<DateTimeType>>();
-
-//        // For navigation properties, either:
-//        // 1. Exclude them
-//        //descriptor.Ignore(t => t.Creator);
-//        descriptor.Ignore(t => t.UserTasks);
-
-//        // OR 2. Configure them properly
-//        //descriptor.Field(t => t.Creator).Type<User>();
-//    }
-//}

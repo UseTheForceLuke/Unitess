@@ -1,49 +1,59 @@
 ﻿using MediatR;
+using Microsoft.EntityFrameworkCore;
 using TaskManager.Application.Abstraction;
+using TaskManager.Application.Users.Commands;
 using TaskManager.Domain;
 using Task = TaskManager.Domain.Tasks.Task;
 
-namespace TaskManager.Application.Tasks.Commands;
-
-public class CreateTaskCommandHandler : IRequestHandler<CreateTaskCommand, TaskDto>
+namespace TaskManager.Application.Tasks.Commands
 {
-    private readonly IApplicationDbContext _context;
-
-    public CreateTaskCommandHandler(IApplicationDbContext context)
+    public class CreateTaskCommandHandler : IRequestHandler<CreateTaskCommand, TaskDto>
     {
-        _context = context;
-    }
+        private readonly IApplicationDbContext _context;
+        private readonly IUserSyncService _userSyncService;
 
-    public async Task<TaskDto> Handle(
-        CreateTaskCommand request,
-        CancellationToken cancellationToken)
-    {
-        var creator = await _context.Users
-            .FindAsync(new object[] { request.CreatorId }, cancellationToken);
-
-        if (creator == null)
-            throw new InvalidOperationException("Creator not found");
-
-        var task = new Task(request.Title, request.Description, request.CreatorId);
-
-        await _context.Tasks.AddAsync(task, cancellationToken);
-
-        if (request.AssignedUserIds.Any())
+        public CreateTaskCommandHandler(IApplicationDbContext context, IUserSyncService userSyncService)
         {
-            foreach (var userId in request.AssignedUserIds)
-            {
-                var user = await _context.Users
-                    .FindAsync(new object[] { userId }, cancellationToken);
-
-                if (user != null)
-                {
-                    task.UserTasks.Add(new UserTask(userId, task.Id));
-                }
-            }
+            _context = context;
+            _userSyncService = userSyncService;
         }
 
-        await _context.SaveChangesAsync(cancellationToken);
+        public async Task<TaskDto> Handle(CreateTaskCommand request, CancellationToken cancellationToken)
+        {
+            var creator = await _userSyncService.GetCurrentUser();
 
-        return new TaskDto(task);
+            // 2. Validate assigned users exist
+            var assignedUsers = await _context.Users
+                .Where(u => request.AssignedUserIds.Contains(u.Id))
+                .ToListAsync(cancellationToken);
+
+            if (assignedUsers.Count != request.AssignedUserIds.Count())
+                throw new Exception("One or more assigned users not found");
+
+            // 3. Create the task
+            var task = new Task(
+                title: request.Title,
+                description: request.Description,
+                creatorId: creator.Id,
+                status: request.Status
+            );
+
+            // 4. Add assigned users
+            foreach (var userId in request.AssignedUserIds)
+            {
+                task.UserTasks.Add(new UserTask(userId, task.Id));
+            }
+
+            // 5. Save changes
+            _context.Tasks.Add(task);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            // 6. Return the DTO
+            return new TaskDto(task)
+            {
+                Creator = new UserDto(creator),
+                AssignedUsers = assignedUsers.Select(u => new UserDto(u)).ToList()
+            };
+        }
     }
 }

@@ -27,6 +27,15 @@ public class Task : Entity
         CreatorId = creatorId;
     }
 
+    public Task(string title, string description, Guid creatorId, TaskStatus status)
+    {
+        Title = title;
+        Description = description;
+        Status = status;
+        CreatedAt = DateTime.UtcNow;
+        CreatorId = creatorId;
+    }
+
     public void Update(string title, string description, TaskStatus status)
     {
         Title = title;
