@@ -1,8 +1,8 @@
-﻿using TaskManager.Infrastructure.Persistence;
-using TaskManager.Application.Tasks.Commands;
+﻿using TaskManager.Application.Tasks.Commands;
 using TaskManager.Application.Users.Commands;
 using HotChocolate.Authorization;
 using Microsoft.EntityFrameworkCore;
+using TaskManager.Application.Abstraction;
 
 namespace TaskManager.API.GraphQL.Queries;
 
@@ -14,9 +14,10 @@ public partial class Queries
     [UseProjection]
     [UseFiltering(typeof(TaskFilterInputType))]
     [UseSorting]
-    public IQueryable<TaskDto> GetTasks([Service] ApplicationDbContext context)
+    public IQueryable<TaskDto> GetTasks([Service] IApplicationDbContext context)
     {
         return context.Tasks
+            .AsNoTracking()
             .Include(t => t.Creator)
             .Include(t => t.UserTasks)
                 .ThenInclude(ut => ut.User)
@@ -35,5 +36,28 @@ public partial class Queries
                         Username = ut.User.Username
                     }).ToList()
             });
+    }
+
+    [Authorize(Policy = "AdminOrUser")]
+    [GraphQLName("getTaskById")]
+    public async Task<TaskDto> GetTaskById(
+        [Service] IApplicationDbContext context,
+        Guid id)
+    {
+        var task = await context.Tasks
+            .Include(t => t.Creator)
+            .FirstOrDefaultAsync(t => t.Id == id);
+
+        return task == null
+            ? throw new GraphQLException("Task not found")
+            :new TaskDto
+            {
+                Id = task.Id,
+                Title = task.Title,
+                Description = task.Description,
+                Status = task.Status,
+                CreatedAt = task.CreatedAt,
+                Creator = new UserDto { Id = task.Creator.Id, Username = task.Creator.Username },
+            };
     }
 }
