@@ -1,6 +1,5 @@
 using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Playground;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using TaskManager.API;
 using TaskManager.API.GraphQL;
@@ -49,6 +48,7 @@ builder.Services
     .AddType<TaskDtoType>()
     .AddType<UserDtoType>()
     .AddType<TaskDtoSortType>()
+    .AddType<TaskFilterInputType>()
     .AddFiltering()
     .AddProjections()
     .AddErrorFilter(error =>

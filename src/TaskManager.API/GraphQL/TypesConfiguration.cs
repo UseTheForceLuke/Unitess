@@ -1,4 +1,5 @@
-﻿using HotChocolate.Data.Sorting;
+﻿using HotChocolate.Data.Filters;
+using HotChocolate.Data.Sorting;
 using TaskManager.API.GraphQL.Mutations;
 using TaskManager.Application.Tasks.Commands;
 using TaskManager.Application.Users.Commands;
@@ -7,7 +8,6 @@ namespace TaskManager.API.GraphQL;
 
 // TODO: move to separate files
 
-// Input Types
 public class CreateTaskInputType : InputObjectType<CreateTaskInput>
 {
     protected override void Configure(IInputObjectTypeDescriptor<CreateTaskInput> descriptor)
@@ -31,7 +31,6 @@ public class UserInputType : InputObjectType<UserDto>
     }
 }
 
-// Enum Types
 public class TaskStatusType : EnumType<TaskManager.Domain.Tasks.TaskStatus>
 {
     protected override void Configure(IEnumTypeDescriptor<TaskManager.Domain.Tasks.TaskStatus> descriptor)
@@ -44,7 +43,6 @@ public class TaskStatusType : EnumType<TaskManager.Domain.Tasks.TaskStatus>
     }
 }
 
-// Sort Types
 public class TaskSortType : SortInputType<TaskManager.Domain.Tasks.Task>
 {
     protected override void Configure(ISortInputTypeDescriptor<TaskManager.Domain.Tasks.Task> descriptor)
@@ -65,7 +63,17 @@ public class TaskDtoSortType : SortInputType<TaskDto>
         descriptor.Field(x => x.Title).Name("title");
         descriptor.Field(x => x.Status).Name("status");
         descriptor.Field(x => x.CreatedAt).Name("createdAt");
-        // Add other sortable fields as needed
+    }
+}
+
+public class TaskFilterInputType : FilterInputType<TaskDto>
+{
+    protected override void Configure(
+        IFilterInputTypeDescriptor<TaskDto> descriptor)
+    {
+        descriptor.BindFieldsExplicitly();
+        descriptor.Field(x => x.Id);
+        descriptor.Field(x => x.Status); 
     }
 }
 
