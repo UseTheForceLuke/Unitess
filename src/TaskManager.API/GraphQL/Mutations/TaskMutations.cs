@@ -1,6 +1,5 @@
 ﻿using MediatR;
 using TaskManager.Application.Tasks.Commands;
-using TaskManager.API.Mutations;
 using TaskManager.Application.Tasks;
 
 namespace TaskManager.API.GraphQL.Mutations;

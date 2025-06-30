@@ -1,6 +1,6 @@
 ﻿using TaskStatus = TaskManager.Domain.Tasks.TaskStatus;
 
-namespace TaskManager.API.Mutations;
+namespace TaskManager.API.GraphQL.Mutations;
 
 public class CreateTaskInput
 {

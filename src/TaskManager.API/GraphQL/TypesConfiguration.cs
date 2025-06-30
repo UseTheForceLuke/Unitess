@@ -1,5 +1,5 @@
 ﻿using HotChocolate.Data.Sorting;
-using TaskManager.API.Mutations;
+using TaskManager.API.GraphQL.Mutations;
 using TaskManager.Application.Tasks.Commands;
 using TaskManager.Application.Users.Commands;
 
