@@ -1,6 +1,6 @@
 # Unitess test task
 
-IdentityServer.pfx
+Develop a GraphQL API for task management with support for authentication and role-based authorization.
 
 ## Features
 
