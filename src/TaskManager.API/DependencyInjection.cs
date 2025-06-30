@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using TaskManager.SharedKernel;
 
 namespace TaskManager.API;
 
@@ -14,12 +15,12 @@ public static class DependencyInjection
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
             {
-                options.Authority = "http://localhost:5011";
+                options.Authority = "http://localhost:5011"; // TODO: un-hardode and put in env
                 options.Audience = "taskmanager.api";
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     NameClaimType = "name",
-                    RoleClaimType = "http://schemas.microsoft.com/ws/2008/06/identity/claims/role", // "role", used to be This is critical
+                    RoleClaimType = Claims.Role,
                     ValidateIssuer = true,
                     ValidIssuer = "http://localhost:5011",
                     ValidateAudience = true,
@@ -30,11 +31,20 @@ public static class DependencyInjection
 
         services.AddAuthorization(options =>
         {
-            options.AddPolicy("Admin", policy => policy.RequireRole("Admin"));
+            options.AddPolicy("Admin", policy =>
+                policy.RequireClaim(
+                    Claims.Role, "Admin"));
             options.AddPolicy("User", policy =>
                 policy.RequireClaim(
-                    "http://schemas.microsoft.com/ws/2008/06/identity/claims/role",
+                    Claims.Role,
                     "User"));
+            // Combined OR policy
+            options.AddPolicy("AdminOrUser", policy =>
+                policy.RequireAssertion(context =>
+                    context.User.IsInRole("Admin") ||
+                    context.User.IsInRole("User")
+                )
+            );
         });
 
         return services;

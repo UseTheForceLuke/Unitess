@@ -1,12 +1,14 @@
 ﻿using TaskManager.Infrastructure.Persistence;
 using TaskManager.Application.Tasks.Commands;
 using TaskManager.Application.Users.Commands;
+using HotChocolate.Authorization;
 
 namespace TaskManager.API.GraphQL.Queries;
 
 [ExtendObjectType("Query")]
 public partial class Queries
 {
+    [Authorize(Policy = "AdminOrUser")]
     [UsePaging]
     [UseProjection]
     [UseFiltering]
