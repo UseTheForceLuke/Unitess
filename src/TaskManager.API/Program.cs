@@ -2,7 +2,6 @@ using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Playground;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using TaskManager.API;
 using TaskManager.API.GraphQL;
 using TaskManager.API.GraphQL.Mutations;
@@ -10,6 +9,7 @@ using TaskManager.API.GraphQL.Queries;
 using TaskManager.Infrastructure;
 using TaskManager.Infrastructure.Persistence;
 using System.Diagnostics;
+using TaskManager.Api.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Configuration
@@ -37,9 +37,6 @@ builder.Services
     {
         config.AddDefaults();
     })
-    .ModifyOptions(options =>
-    {
-    })
     .AddQueryType(d => d.Name("Query"))
         .AddTypeExtension<Queries>()
     .AddMutationType(d => d.Name("Mutation"))
@@ -56,66 +53,12 @@ builder.Services
     .AddProjections()
     .AddErrorFilter(error =>
     {
-        // Custom error handling
         if (error.Exception is not null)
         {
             Debug.WriteLine($"GraphQL Error: {error.Exception}", ConsoleColor.Red);
         }
         return error;
     });
-
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.Authority = "http://localhost:5011";
-        options.Audience = "taskmanager.api";
-        options.TokenValidationParameters = new TokenValidationParameters
-        {
-            NameClaimType = "name",
-            RoleClaimType = "http://schemas.microsoft.com/ws/2008/06/identity/claims/role", // "role", used to be This is critical
-            ValidateIssuer = true,
-            ValidIssuer = "http://localhost:5011",
-            ValidateAudience = true,
-            ValidAudience = "taskmanager.api"
-        };
-        options.RequireHttpsMetadata = false;
-    });
-
-//builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-//    .AddJwtBearer(options =>
-//    {
-//        options.Authority = "http://localhost:5011";
-//        options.Audience = "taskmanager.api";
-//        options.RequireHttpsMetadata = false;
-
-//        options.TokenValidationParameters = new TokenValidationParameters
-//        {
-//            ValidateAudience = true,
-//            ValidAudience = "taskmanager.api",
-//            ValidateIssuer = true,
-//            ValidIssuer = "http://localhost:5011",
-//            ValidateLifetime = true,
-//            ClockSkew = TimeSpan.Zero,
-//            ValidateIssuerSigningKey = true,
-//            RoleClaimType = "role",
-//            NameClaimType = "name"
-//        };
-
-//        // For development only - accept any certificate
-//        options.BackchannelHttpHandler = new HttpClientHandler
-//        {
-//            ServerCertificateCustomValidationCallback = (msg, cert, chain, errors) => true
-//        };
-//    });
-
-builder.Services.AddAuthorization(options =>
-{
-    //options.AddPolicy("Admin", policy => policy.RequireRole("Admin"));
-    options.AddPolicy("User", policy =>
-        policy.RequireClaim(
-            "http://schemas.microsoft.com/ws/2008/06/identity/claims/role",
-            "User"));
-});
 
 var app = builder.Build();
 
@@ -131,30 +74,30 @@ if (app.Environment.IsDevelopment())
 
 app.UseRouting();
 
-// to debug token
-app.Use(async (context, next) =>
-{
-    // Log incoming token
-    var token = context.Request.Headers["Authorization"];
-    Console.WriteLine($"Token: {token}");
+// For Debug token
+//app.Use(async (context, next) =>
+//{
+//    // Log incoming token
+//    var token = context.Request.Headers["Authorization"];
+//    Console.WriteLine($"Token: {token}");
 
-    await next();
+//    await next();
 
-    // Log authenticated user claims
-    if (context.User.Identity?.IsAuthenticated == true)
-    {
-        Console.WriteLine("User claims:");
-        foreach (var claim in context.User.Claims)
-        {
-            Console.WriteLine($"{claim.Type} = {claim.Value}");
-        }
-    }
-});
+//    // Log authenticated user claims
+//    if (context.User.Identity?.IsAuthenticated == true)
+//    {
+//        Console.WriteLine("User claims:");
+//        foreach (var claim in context.User.Claims)
+//        {
+//            Console.WriteLine($"{claim.Type} = {claim.Value}");
+//        }
+//    }
+//});
 
 app.UseAuthentication();
 app.UseAuthorization();
 
-//app.UseMiddleware<CurrentUserMiddleware>();
+app.UseMiddleware<CurrentUserMiddleware>();
 
 app.UseEndpoints(endpoints =>
 {

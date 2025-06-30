@@ -38,4 +38,8 @@
     <ProjectReference Include="..\TaskManager.SharedKernel\TaskManager.SharedKernel.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Middleware\" />
+  </ItemGroup>
+
 </Project>

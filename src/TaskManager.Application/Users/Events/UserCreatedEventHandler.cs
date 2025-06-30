@@ -18,6 +18,7 @@ public class UserCreatedEventHandler : INotificationHandler<UserCreatedEvent>
         await _userSyncService.GetOrCreateUserAsync(
             notification.SubjectId,
             notification.Username,
-            notification.Email);
+            notification.Email,
+            notification.Role);
     }
 }
