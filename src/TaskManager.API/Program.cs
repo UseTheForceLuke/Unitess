@@ -2,6 +2,7 @@ using HotChocolate.AspNetCore;
 using HotChocolate.AspNetCore.Playground;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using TaskManager.Api.Middleware;
 using TaskManager.API;
 using TaskManager.API.GraphQL;
@@ -9,11 +10,11 @@ using TaskManager.API.GraphQL.Mutations;
 using TaskManager.API.GraphQL.Queries;
 using TaskManager.Infrastructure;
 using TaskManager.Infrastructure.Persistence;
+using System.Diagnostics;
 
 var builder = WebApplication.CreateBuilder(args);
-
 builder.Configuration
-    .AddJsonFile("appsettings.json")
+.AddJsonFile("appsettings.json")
     .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", true)
     .AddEnvironmentVariables();
 
@@ -24,6 +25,11 @@ builder.Services
 
 builder.Services
     .AddGraphQLServer()
+    .AddAuthorization() // Enables @authorize directive
+    .ModifyRequestOptions(options =>
+    {
+        options.IncludeExceptionDetails = true; // Show exception details
+    })
     .AddSorting(config =>
     {
         config.AddDefaults();
@@ -48,28 +54,97 @@ builder.Services
     .AddProjections()
     .AddErrorFilter(error =>
     {
-        if (error.Exception is UnauthorizedAccessException)
-            return error.WithMessage("Unauthorized access");
+        // Custom error handling
+        if (error.Exception is not null)
+        {
+            Debug.WriteLine($"GraphQL Error: {error.Exception}", ConsoleColor.Red);
+        }
         return error;
     });
 
+//builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+//    .AddJwtBearer(options =>
+//    {
+//        options.Authority = "http://localhost:5011";
+//        options.Audience = "taskmanager.api";
+
+//        // Configure token validation
+//        options.TokenValidationParameters = new TokenValidationParameters
+//        {
+//            ValidateAudience = true,
+//            ValidAudience = "taskmanager.api",
+//            ValidateIssuer = true,
+//            ValidIssuer = "http://localhost:5011",
+//            ValidateLifetime = true,
+//            ClockSkew = TimeSpan.Zero,
+//            RoleClaimType = "role",
+//            NameClaimType = "name",
+//            RequireSignedTokens = true,
+//            ValidateIssuerSigningKey = true,
+
+//            // Simplified key resolver
+//            IssuerSigningKeyResolver = async (token, securityToken, kid, parameters) =>
+//            {
+//                using var client = new HttpClient();
+//                var discoveryDocument = await client.GetDiscoveryDocumentAsync("http://localhost:5011");
+
+//                if (discoveryDocument.IsError)
+//                {
+//                    throw new Exception($"Discovery error: {discoveryDocument.Error}");
+//                }
+
+//                return discoveryDocument.KeySet.Keys;
+//            }
+//        };
+
+//        options.RequireHttpsMetadata = false;
+//    });
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
-        options.Authority = builder.Configuration["IdentityServer:Authority"];
-        options.Audience = builder.Configuration["IdentityServer:Audience"];
-        options.RequireHttpsMetadata = bool.Parse(builder.Configuration["IdentityServer:RequireHttpsMetadata"]!);
+        options.Authority = "http://localhost:5011";
+        options.Audience = "taskmanager.api";
+
+        // Add these two critical lines:
+        options.RequireHttpsMetadata = false; // Disable HTTPS requirement
+        options.BackchannelHttpHandler = new HttpClientHandler
+        {
+            ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+        };
+
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateAudience = true,
+            ValidAudience = "taskmanager.api",
+            ValidateIssuer = true,
+            ValidIssuer = "http://localhost:5011",
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.Zero,
+            ValidateIssuerSigningKey = true,
+            RoleClaimType = "role",
+            NameClaimType = "name"
+        };
+
+        // Add this exact configuration:
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKeyResolver = (token, securityToken, kid, parameters) =>
+            {
+                var client = new HttpClient();
+                var jwks = client.GetStringAsync($"{options.Authority}/.well-known/openid-configuration/jwks").Result;
+                return new JsonWebKeySet(jwks).GetSigningKeys();
+            },
+            // Rest of your validation parameters...
+        };
     });
 
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy("Admin", policy =>
-        policy.RequireAssertion(context =>
-            context.User.HasClaim(c =>
-                c.Type == "role" && c.Value == "Admin")));
-
+    options.AddPolicy("Admin", policy => policy.RequireRole("Admin"));
     options.AddPolicy("User", policy =>
-        policy.RequireAuthenticatedUser());
+        policy.RequireAuthenticatedUser()
+              .RequireClaim("role", "User")); // Changed from RequireRole to RequireClaim
 });
 
 var app = builder.Build();
@@ -89,7 +164,7 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.UseMiddleware<CurrentUserMiddleware>();
+//app.UseMiddleware<CurrentUserMiddleware>();
 
 app.UseEndpoints(endpoints =>
 {

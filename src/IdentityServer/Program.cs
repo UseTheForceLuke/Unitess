@@ -16,6 +16,9 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Hosting;
+using System.Runtime.ConstrainedExecution;
+using System.IO;
+using System.Security.Cryptography.X509Certificates;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,6 +37,37 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>()
     .AddEntityFrameworkStores<AppIdentityDbContext>()
     .AddDefaultTokenProviders();
 
+X509Certificate2 certificate = null;
+
+if (builder.Environment.IsDevelopment())
+{
+    // For Docker development
+    var certPath = "/root/.aspnet/https/IdentityServer.pfx";
+    var certPassword = "your_password";/*builder.Configuration["CertificatePassword"];*/
+
+    if (File.Exists(certPath))
+    {
+        certificate = new X509Certificate2(certPath, certPassword,
+            X509KeyStorageFlags.MachineKeySet |
+            X509KeyStorageFlags.PersistKeySet |
+            X509KeyStorageFlags.Exportable);
+    }
+    else
+    {
+        // Fallback to memory-based keys if cert not found
+        certificate = new X509Certificate2(
+            Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                "ASP.NET", "Https", "IdentityServer.pfx"),
+            builder.Configuration["CertificatePassword"]);
+    }
+}
+else
+{
+    // Production configuration (Azure Key Vault, Kubernetes secrets, etc.)
+    //certificate = /* Your production cert loading logic */;
+}
+
 builder.Services.AddIdentityServer(options =>
     {
         options.Events.RaiseErrorEvents = true;
@@ -41,8 +75,10 @@ builder.Services.AddIdentityServer(options =>
         options.Events.RaiseFailureEvents = true;
         options.Events.RaiseSuccessEvents = true;
     })
-    .AddDeveloperSigningCredential()
     .AddAspNetIdentity<IdentityUser>()
+    .AddSigningCredential(certificate)
+    .AddDeveloperSigningCredential(persistKey: false, filename: null) // Persist key to file
+    .AddInMemoryApiResources(Config.ApiResources)
     .AddInMemoryIdentityResources(Config.IdentityResources)
     .AddInMemoryApiScopes(Config.ApiScopes)
     .AddInMemoryClients(Config.Clients);

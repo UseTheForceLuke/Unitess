@@ -8,7 +8,8 @@ namespace TaskManager.API.GraphQL.Mutations;
 [ExtendObjectType("Mutation")]
 public partial class Mutations
 {
-    //[Authorize(Policy = "Admin,User")]
+    //[Authorize(Policy = "Admin")]
+    [Authorize(Policy = "User")]
     public async Task<TaskDto> CreateTask(
         [Service] IMediator mediator,
         CreateTaskInput input,
