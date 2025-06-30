@@ -29,16 +29,7 @@ builder.Configuration
 builder.Services
     .AddInfrastructure(builder.Configuration)
     .AddApplication()
-    .AddPresentation();
-
-// Add authentication (make sure to configure your JWT bearer options)
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(options =>
-    {
-        options.Authority = "https://localhost:5012";
-        options.Audience = "taskmanager.api";
-        options.RequireHttpsMetadata = false; // Only for development
-    });
+    .AddPresentation(builder.Configuration);
 
 builder.Services
     .AddGraphQLServer()
@@ -59,9 +50,9 @@ builder.Services
     .AddType<CreateTaskInputType>()
     .AddType<UserInputType>()
     .AddType<TaskSortType>()
-    .AddType<TaskDtoType>() // Add this
-    .AddType<UserDtoType>() // Add this
-    .AddType<TaskDtoSortType>() // Uncomment this
+    .AddType<TaskDtoType>()
+    .AddType<UserDtoType>()
+    .AddType<TaskDtoSortType>()
     .AddFiltering()
     .AddProjections()
     .AddErrorFilter(error =>
@@ -79,34 +70,45 @@ if (app.Environment.IsDevelopment())
     {
         Path = "/playground",
         QueryPath = "/graphql",
-        SubscriptionPath = "/graphql"
+        SubscriptionPath = "/graphql",
     });
 }
 
 app.UseRouting();
+
+// Add this middleware before UseAuthorization()
+app.Use(async (context, next) =>
+{
+    // Check if request is coming from Playground
+    if (context.Request.Path.StartsWithSegments("/graphql") &&
+        context.Request.Headers.TryGetValue("Referer", out var referer) &&
+        referer.ToString().Contains("playground"))
+    {
+        // Skip auth for playground
+        await next();
+    }
+    else
+    {
+        // Apply auth for all other requests
+        await next();
+    }
+});
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.UseMiddleware<CurrentUserMiddleware>();
+
 app.UseEndpoints(endpoints =>
 {
-    endpoints.MapGraphQL();
+    endpoints.MapGraphQL()
+    .RequireAuthorization();
 });
 
 ApplyMigrations(app);
 
-//app.UseAuthentication();
-//builder.Services.AddAuthorization(options =>
-//{
-//    options.AddPolicy("Admin", policy =>
-//        policy.RequireAssertion(context =>
-//            context.User.HasClaim(c =>
-//                c.Type == "role" && c.Value == "Admin")));
-
-//    options.AddPolicy("User", policy =>
-//        policy.RequireAuthenticatedUser());
-//});
-app.UseMiddleware<CurrentUserMiddleware>();
-
 app.Run();
 
-static void ApplyMigrations(WebApplication app)
+static void ApplyMigrations(WebApplication app) 
 {
     using (var scope = app.Services.CreateScope())
     {

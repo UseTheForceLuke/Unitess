@@ -13,7 +13,8 @@ public class CurrentUserMiddleware
 
     public async Task InvokeAsync(HttpContext context, IUserSyncService userSyncService)
     {
-        if (context.User.Identity?.IsAuthenticated == true)
+        if (!context.Request.Path.StartsWithSegments("/playground") &&
+            context.User.Identity?.IsAuthenticated == true)
         {
             try
             {
