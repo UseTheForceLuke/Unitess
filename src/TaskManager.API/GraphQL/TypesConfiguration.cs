@@ -86,8 +86,14 @@ public class TaskDtoType : ObjectType<TaskDto>
         descriptor.Field(x => x.Description).Type<StringType>();
         descriptor.Field(x => x.Status).Type<NonNullType<TaskStatusType>>();
         descriptor.Field(x => x.CreatedAt).Type<NonNullType<DateTimeType>>();
-        descriptor.Field(x => x.Creator).Type<UserDtoType>();
-        descriptor.Field(x => x.AssignedUsers).Type<ListType<UserDtoType>>();
+
+        descriptor.Field(x => x.Creator)
+            .Resolve(ctx => ctx.Parent<TaskDto>().Creator) // Use pre-loaded data
+            .Name("creator");
+
+        descriptor.Field(x => x.AssignedUsers)
+            .Resolve(ctx => ctx.Parent<TaskDto>().AssignedUsers) // Use pre-loaded data
+            .Name("assignedUsers");
     }
 }
 
